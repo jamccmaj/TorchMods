@@ -1,0 +1,12 @@
+__pycache__/
+.#*
+*.cpk
+runs/
+*sublime*
+data/
+old/
+.python-version
+data/
+notebooks/.ipynb_checkpoints/
+.vscode/
+__pycache__/
