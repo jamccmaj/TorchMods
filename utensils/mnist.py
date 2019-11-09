@@ -15,10 +15,13 @@ import numpy as np
     train-labels-idx1-ubyte.gz:  training set labels (28881 bytes)
     t10k-images-idx3-ubyte.gz:   test set images (1648877 bytes)
     t10k-labels-idx1-ubyte.gz:   test set labels (4542 bytes)
+
 """
 
 
-def mnist_image_to_numpy(infile, max_images_to_load=None):
+def mnist_image_to_numpy(
+    infile, max_images_to_load=None, datatype=np.float32
+):
     """
         Convert the mnist images files (Yann LeCun's
         website) from gzipped files into numpy arrays
@@ -51,10 +54,13 @@ def mnist_image_to_numpy(infile, max_images_to_load=None):
 
     bytestream.close()
 
-    return images
+    return images.astype(datatype)
 
 
-def mnist_label_to_numpy(infile, max_images_to_load=None, onehot_encode=True):
+def mnist_label_to_numpy(
+    infile, max_images_to_load=None,
+    onehot_encode=True, datatype=np.float32
+):
     """
         Convert the mnist labels files (Yann LeCun's
         website) from gzipped files into numpy arrays
@@ -84,4 +90,4 @@ def mnist_label_to_numpy(infile, max_images_to_load=None, onehot_encode=True):
         labels_onehot[np.arange(labels.size), labels] = 1
         labels = labels_onehot
 
-    return labels
+    return labels.astype(datatype)
