@@ -1,8 +1,5 @@
 #! /usr/bin/env python3
 
-import gzip
-import numpy as np
-
 """
     Some utility functions for loading mnist data.
 
@@ -18,9 +15,12 @@ import numpy as np
 
 """
 
+import gzip
+import numpy as np
+
 
 def mnist_image_to_numpy(
-    infile, max_images_to_load=None, datatype=np.float32
+    infile, max_images_to_load=None, dtype=np.float32
 ):
     """
         Convert the mnist images files (Yann LeCun's
@@ -54,12 +54,12 @@ def mnist_image_to_numpy(
 
     bytestream.close()
 
-    return images.astype(datatype)
+    return images.astype(dtype)
 
 
 def mnist_label_to_numpy(
     infile, max_images_to_load=None,
-    onehot_encode=True, datatype=np.float32
+    onehot_encode=True, dtype=np.float32
 ):
     """
         Convert the mnist labels files (Yann LeCun's
@@ -90,4 +90,4 @@ def mnist_label_to_numpy(
         labels_onehot[np.arange(labels.size), labels] = 1
         labels = labels_onehot
 
-    return labels.astype(datatype)
+    return labels.astype(dtype)

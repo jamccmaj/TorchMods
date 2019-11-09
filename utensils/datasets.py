@@ -4,27 +4,32 @@ import numpy as np
 
 from torch.utils.data import Dataset
 
-from mnist import mnist_image_to_numpy, mnist_label_to_numpy
+from utensils.mnist import mnist_image_to_numpy
+from utensils.mnist import mnist_label_to_numpy
 
 
 class MnistDataset(Dataset):
 
     def __init__(
-        self, images_file, labels_file, datatype=np.float32,
+        self, images_file, labels_file, dtype=np.float32,
         max_images_to_load=None, onehot_encode=True, shape=None
     ):
         self.images = mnist_image_to_numpy(
-            images_file, datatype=datatype,
+            images_file, datatype=dtype,
             max_images_to_load=max_images_to_load
         )
 
         self.labels = mnist_label_to_numpy(
             labels_file, max_images_to_load=max_images_to_load,
-            onehot_encode=onehot_encode, datatype=datatype
+            onehot_encode=onehot_encode, datatype=dtype
         )
 
         if shape:
-            self.images = self.images.reshape(*shape)
+            self.images = self.images.reshape(
+                self.images.shape[0], *shape
+            )
+
+        self.images /= 255
 
     def __len__(self):
         return len(self.images)
