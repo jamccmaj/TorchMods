@@ -39,7 +39,7 @@ def loss_function_producer(loss_functions):
     """
 
     def loss_function(inputs):
-        loss_dict = {}
+        loss_dict = OrderedDict()
         for f, (i, o) in zip(loss_functions.keys(), inputs):
             loss_dict[f] = loss_functions[f](i, o)
         return loss_dict
@@ -49,24 +49,18 @@ def loss_function_producer(loss_functions):
 
 class GenericModel(ABC, Module):
     def __init__(
-        self, model_pieces, *args,
+        self, model_pieces, output_keys, *args,
         model_name="Default", **kwargs
     ):
         super().__init__(*args, **kwargs)
 
-        if len(model_pieces) == 1:
-            key = list(model_pieces.keys())[0]
-            self.pieces = Sequential(model_pieces[key])
-
-        else:
-            self.pieces = Sequential()
-            for key in model_pieces:
-                self.pieces.add_module(
-                    key, Sequential(model_pieces[key])
-                )
+        self.pieces = Sequential()
+        for key in model_pieces:
+            self.pieces.add_module(
+                key, Sequential(model_pieces[key])
+            )
 
         self.model_name = model_name
-        self.device = 'cpu'
         self.use_cuda = False
         self.loss = None
         self.tensorboard_writer = None
@@ -106,14 +100,25 @@ class GenericModel(ABC, Module):
     #     raise NotImplementedError
 
     def forward(self, inputs):
-        pieces = {}
+        pieces = OrderedDict()
         current_inputs = inputs
 
-        for key in self.pieces:
-            pieces[key] = self.model_pieces(current_inputs)
+        for key in self.pieces._modules:
+            pieces[key] = self.pieces._modules[key](current_inputs)
             current_inputs = pieces[key]
 
         return pieces
+
+    def fit_batch(self, input_batch):
+        self.opt.zero_grad()
+        input_batch = input_batch.to(self.device)
+        outputs = self.forward(input_batch)
+        loss_params = ((outputs, input_batch))
+        losses = self.loss_function(loss_params)
+        self.loss = sum(losses.values())
+        self.loss.backward()
+        self.opt.step()
+        return outputs, losses
 
     def log_to_tensorboard(self, params_dict, count):
         """

@@ -25,7 +25,7 @@ data_home = "/home/jamc/Data/MNIST_data"
 image_fn = f"{data_home}/train-images-idx3-ubyte.gz"
 label_fn = f"{data_home}/train-labels-idx1-ubyte.gz"
 
-dataset = MnistDataset(image_fn, label_fn)
+dataset = MnistDataset(image_fn, label_fn, shape=(-1,))
 
 training = torch.utils.data.DataLoader(
     dataset, batch_size=bs, shuffle=shuf
@@ -33,7 +33,7 @@ training = torch.utils.data.DataLoader(
 
 model_dict = OrderedDict(
     (
-        ('Hidden_Layer_1', Linear(786, 128)),
+        ('Hidden_Layer_1', Linear(dataset.images.shape[-1], 128)),
         ('Activation_Layer_1', leaky_relu),
         ('Hidden_Layer_2', Linear(128, 10)),
         ('Sigmoid_Output', sigmoid)
