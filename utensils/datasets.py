@@ -15,13 +15,13 @@ class MnistDataset(Dataset):
         max_images_to_load=None, onehot_encode=True, shape=None
     ):
         self.images = mnist_image_to_numpy(
-            images_file, datatype=dtype,
+            images_file, dtype=dtype,
             max_images_to_load=max_images_to_load
         )
 
         self.labels = mnist_label_to_numpy(
             labels_file, max_images_to_load=max_images_to_load,
-            onehot_encode=onehot_encode, datatype=dtype
+            onehot_encode=onehot_encode, dtype=dtype
         )
 
         if shape:

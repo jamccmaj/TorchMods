@@ -3,9 +3,16 @@
 import socket
 from abc import ABC, abstractmethod
 from datetime import datetime
+from collections import OrderedDict
 
 import torch
-from torch.nn import Module
+from torch.nn import Module, Sequential
+
+
+def flatten(_list):
+    return [
+        item for sublist in _list for item in sublist
+    ]
 
 
 def loss_function_producer(loss_functions):
@@ -30,6 +37,7 @@ def loss_function_producer(loss_functions):
         optimizer.step()
 
     """
+
     def loss_function(inputs):
         loss_dict = {}
         for f, (i, o) in zip(loss_functions.keys(), inputs):
@@ -40,11 +48,28 @@ def loss_function_producer(loss_functions):
 
 
 class GenericModel(ABC, Module):
-    def __init__(self, *args, model_name="Default", **kwargs):
+    def __init__(
+        self, model_pieces, *args,
+        model_name="Default", **kwargs
+    ):
         super().__init__(*args, **kwargs)
+
+        if len(model_pieces) == 1:
+            key = list(model_pieces.keys())[0]
+            self.pieces = Sequential(model_pieces[key])
+
+        else:
+            self.pieces = Sequential()
+            for key in model_pieces:
+                self.pieces.add_module(
+                    key, Sequential(model_pieces[key])
+                )
+
         self.model_name = model_name
         self.device = 'cpu'
+        self.use_cuda = False
         self.loss = None
+        self.tensorboard_writer = None
         self.built = False
 
     def build(
@@ -72,10 +97,54 @@ class GenericModel(ABC, Module):
         self.to(self.device)
         self.built = True
 
-    @abstractmethod
-    def fit_batch(self):
-        raise NotImplementedError
+    # @abstractmethod
+    # def fit_batch(self):
+    #     raise NotImplementedError
 
-    @abstractmethod
-    def fit(self):
-        raise NotImplementedError
+    # @abstractmethod
+    # def fit(self):
+    #     raise NotImplementedError
+
+    def forward(self, inputs):
+        pieces = {}
+        current_inputs = inputs
+
+        for key in self.pieces:
+            pieces[key] = self.model_pieces(current_inputs)
+            current_inputs = pieces[key]
+
+        return pieces
+
+    def log_to_tensorboard(self, params_dict, count):
+        """
+            params_dict is a set of key, value pairs, where
+            the key is the top-level heading and the value is
+            a dict containing key, value pairs corresponding
+            to names (key) and scalars (value).
+
+            Such an input dict looks like this:
+
+            params_dict = {
+                'loss': {
+                    'mse': 23.234,
+                    'kl': 4.453
+                },
+
+                'cov_matrix': {
+                    'trace': 8.564,
+                    'det': 1.234
+                }
+            }
+
+            These will be logged under separate subheadings
+            in the tensorboard scalar window.
+
+        """
+
+        if not(self.tensorboard_writer):
+            return
+
+        for key in params_dict:
+            self.writer.add_scalars(
+                key, params_dict[key], count
+            )
