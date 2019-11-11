@@ -49,7 +49,7 @@ def loss_function_producer(loss_functions):
 
 class GenericModel(ABC, Module):
     def __init__(
-        self, model_pieces, output_keys, *args,
+        self, model_pieces, *args,
         model_name="Default", **kwargs
     ):
         super().__init__(*args, **kwargs)
@@ -91,14 +91,6 @@ class GenericModel(ABC, Module):
         self.to(self.device)
         self.built = True
 
-    # @abstractmethod
-    # def fit_batch(self):
-    #     raise NotImplementedError
-
-    # @abstractmethod
-    # def fit(self):
-    #     raise NotImplementedError
-
     def forward(self, inputs):
         pieces = OrderedDict()
         current_inputs = inputs
@@ -119,6 +111,9 @@ class GenericModel(ABC, Module):
         self.loss.backward()
         self.opt.step()
         return outputs, losses
+
+    def fit(self, inputs):
+        pass
 
     def log_to_tensorboard(self, params_dict, count):
         """

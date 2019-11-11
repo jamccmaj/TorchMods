@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-import sys
 from collections import OrderedDict
 
 from context import archetypes
@@ -8,6 +7,7 @@ from context import utensils
 
 from utensils.datasets import MnistDataset
 from archetypes.model import GenericModel
+from archetypes.classifier import MnistClassifier
 
 
 import torch
@@ -15,9 +15,9 @@ from torch.nn import Linear, Sigmoid, LeakyReLU
 
 sigmoid = Sigmoid()
 leaky_relu = LeakyReLU()
-mse = torch.nn.MSELoss(reduction='mean')
+mse = torch.nn.MSELoss(reduction='sum')
 
-bs = 64
+bs = 512
 shuf = True
 nepochs = 1
 
@@ -37,19 +37,13 @@ model_dict = OrderedDict(
         ('Activation_Layer_1', leaky_relu),
         ('Hidden_Layer_2', Linear(128, 10)),
         ('Sigmoid_Output', sigmoid)
-
     )
 )
 
-for i in range(nepochs):
-    for j, (x, y) in enumerate(training):
-        # print(j, x, y)
-        break
-
-model = GenericModel(
+model = MnistClassifier(
     {"classifier": model_dict}, model_name="Classifier"
 )
 
-# print(model.model_pieces)
-
 model.build({'mse': mse}, try_cuda=False)
+
+model.fit(training, nepochs=10)
