@@ -78,3 +78,28 @@ class CreditCardDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.data[idx], self.amounts[idx], self.labels[idx]
+
+
+class ElectricityGrid(Dataset):
+
+    def __init__(
+        self, data_file, metadata_file=None,
+        timesteps=None, dtype=np.float32
+    ):
+        if timesteps:
+            self.timesteps = timesteps
+        else:
+            self.timesteps = 1
+        self.data = np.load(data_file).astype(dtype)
+        # leave_out = -(self.data.shape[0] % self.timesteps)
+        # self.data = self.data[:leave_out, :]
+        self.data /= self.data.max(axis=0)
+
+    def __len__(self):
+        return len(self.data) - self.timesteps - 1
+
+    def __getitem__(self, idx):
+        return (
+            self.data[idx: idx+self.timesteps, :],
+            self.data[idx+1:idx+1+self.timesteps, :]
+        )
