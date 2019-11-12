@@ -1,5 +1,9 @@
 #! /usr/bin/env python3
 
+import torch
+from torch.nn import Module
+
+
 class LstmAllHidden(Module):
     def __init__(
         self, input_size, hidden_size, *args,
@@ -15,13 +19,11 @@ class LstmAllHidden(Module):
         )
 
     def forward(self, inputs):
-        self.output, (
-            self.hidden_state, self.cell_state
-        ) = self.lstm(inputs)
-        return self.output
+        o, (h, c) = self.lstm(inputs)
+        return o
 
 
-class LstmCellStateOnly(Module):
+class LstmCellOnly(Module):
     def __init__(
         self, input_size, hidden_size, *args,
         num_layers=1, bias=True, batch_first=True,
@@ -36,7 +38,22 @@ class LstmCellStateOnly(Module):
         )
 
     def forward(self, inputs):
-        self.output, (
-            self.hidden_state, self.cell_state
-        ) = self.lstm(inputs)
-        return self.cell_state.squeeze()
+        o, (h, c) = self.lstm(inputs)
+        return c.squeeze()
+
+
+class ExpandAndRepeatOutput(Module):
+    def __init__(self, axis, repeat_times):
+        super().__init__()
+        self.expanding_axis = axis
+        self.reps = repeat_times
+        self.expand = [-1, -1, -1]
+        self.expand[self.expanding_axis] *= -self.reps
+
+    def forward(self, inputs):
+        return inputs.unsqueeze(
+            self.expanding_axis
+        ).expand(*self.expand)
+
+    def extra_repr(self):
+        return f"expand={self.expanding_axis}, reps={self.reps}"
