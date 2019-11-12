@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 
 from utensils.mnist import mnist_image_to_numpy
 from utensils.mnist import mnist_label_to_numpy
+from utensils.errors import TooManyTimestepsError
 
 
 class MnistDataset(Dataset):
@@ -81,7 +82,6 @@ class CreditCardDataset(Dataset):
 
 
 class ElectricityGrid(Dataset):
-
     def __init__(
         self, data_file, metadata_file=None,
         timesteps=None, dtype=np.float32
@@ -91,15 +91,45 @@ class ElectricityGrid(Dataset):
         else:
             self.timesteps = 1
         self.data = np.load(data_file).astype(dtype)
-        # leave_out = -(self.data.shape[0] % self.timesteps)
-        # self.data = self.data[:leave_out, :]
         self.data /= self.data.max(axis=0)
 
     def __len__(self):
-        return len(self.data) - self.timesteps - 1
+        return len(self.data) - self.timesteps
 
     def __getitem__(self, idx):
         return (
             self.data[idx: idx+self.timesteps, :],
             self.data[idx+1:idx+1+self.timesteps, :]
+        )
+
+
+class ElectricGridPredict(Dataset):
+    def __init__(
+        self, latent_with_meta, original_data_file,
+        timesteps=1, dtype=np.float32
+    ):
+
+        # don't set timesteps to 0!
+        if timesteps < 1:
+            self.timesteps = 1
+        else:
+            self.timesteps = timesteps
+
+        self.latent_w_meta = np.load(latent_with_meta).astype(dtype)
+        self.targets = np.load(original_data_file).astype(dtype)
+
+        max_ts = self.targets.shape[0] - self.latent_w_meta.shape[0]
+
+        if self.timesteps > max_ts:
+            msg = "Too many timesteps for forecast training"
+            raise TooManyTimestepsError(msg)
+
+    def __len__(self):
+        return len(self.latent_data)
+
+    def __getitem__(self, idx):
+        x = self.timesteps
+        return (
+            self.latent_w_meta[idx, :],
+            self.data[idx+x:idx+2*x, :]
         )
