@@ -3,6 +3,7 @@
 from archetypes.model import GenericModel
 from utensils.errors import NotBuiltError
 
+
 class Autoencoder(GenericModel):
 
     def __init__(self, *args, **kwargs):
