@@ -10,3 +10,4 @@ data/
 notebooks/.ipynb_checkpoints/
 .vscode/
 __pycache__/
+*.ckp

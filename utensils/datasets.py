@@ -94,7 +94,7 @@ class ElectricityGrid(Dataset):
         self.data /= self.data.max(axis=0)
 
     def __len__(self):
-        return len(self.data) - self.timesteps
+        return len(self.data) - self.timesteps - 1
 
     def __getitem__(self, idx):
         return (
@@ -106,7 +106,7 @@ class ElectricityGrid(Dataset):
 class ElectricGridPredict(Dataset):
     def __init__(
         self, latent_with_meta, original_data_file,
-        timesteps=1, dtype=np.float32
+        embedded_timesteps=50, timesteps=1, dtype=np.float32
     ):
 
         # don't set timesteps to 0!
@@ -114,9 +114,10 @@ class ElectricGridPredict(Dataset):
             self.timesteps = 1
         else:
             self.timesteps = timesteps
-
+        self.embedded_timesteps = embedded_timesteps
         self.latent_w_meta = np.load(latent_with_meta).astype(dtype)
         self.targets = np.load(original_data_file).astype(dtype)
+        self.targets /= self.targets.max(axis=0)
 
         max_ts = self.targets.shape[0] - self.latent_w_meta.shape[0]
 
@@ -125,11 +126,12 @@ class ElectricGridPredict(Dataset):
             raise TooManyTimestepsError(msg)
 
     def __len__(self):
-        return len(self.latent_data)
+        return len(self.latent_w_meta)
 
     def __getitem__(self, idx):
+        y = self.embedded_timesteps
         x = self.timesteps
         return (
             self.latent_w_meta[idx, :],
-            self.data[idx+x:idx+2*x, :]
+            self.targets[idx+y:idx+x+y, :].squeeze()
         )

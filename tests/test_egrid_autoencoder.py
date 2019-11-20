@@ -11,13 +11,8 @@ from utensils.special import ExpandAndRepeatOutput
 
 from archetypes.uber import ForecastEmbedding
 
-
 import torch
-from torch.nn import Linear, Sigmoid, LeakyReLU, Tanh
 
-tanh = Tanh()
-sigmoid = Sigmoid()
-leaky_relu = LeakyReLU()
 mse = torch.nn.MSELoss(reduction='sum')
 
 bs = 256
@@ -56,8 +51,12 @@ encoder = OrderedDict(
 decoder = OrderedDict(
     (
         ('repeater', ExpandAndRepeatOutput(1, ts)),
-        ('lstm_dec_1', LstmAllHidden(latent_dim, inter_dim)),
-        ('lstm_enc_2', LstmAllHidden(inter_dim, num_clients))
+        ('lstm_dec_1', LstmAllHidden(
+            latent_dim, inter_dim, batch_first=True
+        )),
+        ('lstm_enc_2', LstmAllHidden(
+            inter_dim, num_clients, batch_first=True
+        ))
     )
 )
 
@@ -69,6 +68,6 @@ model = ForecastEmbedding(
     model_dict, model_name="UberLatentEmbed"
 )
 
-model.build({'mse': mse}, try_cuda=False)
+model.build({'mse': mse}, try_cuda=True)
 
-model.fit(training, nepochs=10)
+model.fit(training, nepochs=nepochs)
