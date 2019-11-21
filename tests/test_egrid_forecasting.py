@@ -24,7 +24,7 @@ ts = 1
 
 data_home = "/home/jamc/.datasets/electricity_grid"
 data_fn = f"{data_home}/LD2011_2014_.npy"
-latent_fn = f"2019_11_12_LD2011_2014_latent_rep_with_metadata.npy"
+latent_fn = f"2019_11_21_LD2011_2014_latent_rep_with_metadata.npy"
 latent_fn = f"{data_home}/{latent_fn}"
 
 

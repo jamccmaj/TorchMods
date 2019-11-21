@@ -17,7 +17,7 @@ mse = torch.nn.MSELoss(reduction='sum')
 
 bs = 256
 shuf = True
-nepochs = 1
+nepochs = 30
 ts = 50
 
 data_home = "/home/jamc/.datasets/electricity_grid"
